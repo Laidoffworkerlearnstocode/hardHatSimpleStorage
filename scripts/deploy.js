@@ -1,33 +1,58 @@
-// We require the Hardhat Runtime Environment explicitly here. This is optional
-// but useful for running the script in a standalone fashion through `node <script>`.
-//
-// You can also run a script with `npx hardhat run <script>`. If you do that, Hardhat
-// will compile your contracts, add the Hardhat Runtime Environment's members to the
-// global scope, and execute the script.
-const hre = require("hardhat");
+const ethers = require('ethers');
+const fs = require('fs-extra');
+const colors = require('colors');
+const readline = require('readline/promises');
 
-async function main() {
-  const currentTimestampInSeconds = Math.round(Date.now() / 1000);
-  const unlockTime = currentTimestampInSeconds + 60;
+require('dotenv').config();
 
-  const lockedAmount = hre.ethers.parseEther("0.001");
-
-  const lock = await hre.ethers.deployContract("Lock", [unlockTime], {
-    value: lockedAmount,
-  });
-
-  await lock.waitForDeployment();
-
-  console.log(
-    `Lock with ${ethers.formatEther(
-      lockedAmount
-    )}ETH and unlock timestamp ${unlockTime} deployed to ${lock.target}`
-  );
+async function restoreKey() {
+    const rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout
+    });
+    const password = await rl.question('请输入密码: ');
+    rl.close();
+    try {
+        const encryptedKeyStore = await fs.readFile("./keystoreSepolia.json", "utf-8");
+        const wallet = await ethers.Wallet.fromEncryptedJson(encryptedKeyStore, password);
+        console.log(`已经恢复钱包: ${wallet.address}`.green);
+        return wallet;
+    } catch (error) {
+        console.log(`${error.message}`.red);
+        process.exit(1);
+    }
 }
 
-// We recommend this pattern to be able to use async/await everywhere
-// and properly handle errors.
-main().catch((error) => {
-  console.error(error);
-  process.exitCode = 1;
-});
+async function main() {
+    const provider = new ethers.providers.JsonRpcProvider(process.env.RPC_URL);
+    console.log(`已经连接到Alchemy节点: ${provider.connection.url}`);
+
+    const wallet = await restoreKey();
+    const signerWallet = wallet.connect(provider);
+    console.log(`已经使用钱包: ${signerWallet.address}连接到sepolia测试网`);
+    const abi = await fs.readFile("./SimpleStorage_sol_SimpleStorage.abi", "utf-8");
+    const binary = await fs.readFile("./SimpleStorage_sol_SimpleStorage.bin", "utf-8");
+    const contractFactory = new ethers.ContractFactory(abi, binary, signerWallet);
+    console.log(`正在部署合约...`);
+    const contract = await contractFactory.deploy();
+    console.log(`合约部署成功: ${contract.address}`.yellow);
+    const receipt = await contract.deployTransaction.wait(1);
+    console.log(`合约部署交易的哈希: ${receipt.transactionHash}`);
+
+    const currentFavoriteNumber = await contract.retrieve();
+    console.log(`当前的favoriteNumber: ${currentFavoriteNumber}`.blue);
+    const tx = await contract.store(13);
+    const receipt_1 = await tx.wait(1);
+    console.log(`store交易的哈希: ${receipt_1.transactionHash}`);
+    const newFavoriteNumber = await contract.retrieve();
+    console.log(`新的favoriteNumber: ${newFavoriteNumber}`.green);
+}
+
+main()
+    .then(() => process.exit(0))
+    .catch(error => {
+        console.error(error);
+        process.exit(1);
+    }
+);
+
