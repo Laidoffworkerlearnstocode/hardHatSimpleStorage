@@ -35,6 +35,41 @@
       "artifacts": [
         "SimpleStorage"
       ]
+    },
+    "/mnt/e/MyRepositories/hardHatSimpleStorage/contracts/SimpleStorage.sol": {
+      "lastModificationDate": 1686284820143,
+      "contentHash": "d5829c43c0a6670eaf78d7c7c9a45d31",
+      "sourceName": "contracts/SimpleStorage.sol",
+      "solcConfig": {
+        "version": "0.8.18",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.7"
+      ],
+      "artifacts": [
+        "SimpleStorage"
+      ]
     }
   }
 }
