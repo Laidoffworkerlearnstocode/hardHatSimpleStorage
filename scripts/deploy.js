@@ -1,12 +1,13 @@
 const hre = require('hardhat');
 const colors = require('colors');
 require('dotenv').config();
+require("@nomicfoundation/hardhat-verify");
 
 async function main() {
     const signers = await hre.ethers.getSigners();
     const deployer = signers[0];
     const contractFactory = await hre.ethers.getContractFactory('SimpleStorage', deployer);
-    console.log(`正在部署合约...`);
+    console.log(`正在部署合约...`.blue);
     const contract = await contractFactory.deploy();
     const contractDeployed = await contract.waitForDeployment();
     const contractAddress = await contractDeployed.getAddress();
