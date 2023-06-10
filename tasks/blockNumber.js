@@ -1,4 +1,6 @@
 const { task } = require("hardhat/config");
+require("colors");
+
 
 task("blockNumber", "Prints the current block number")
     .setAction(
@@ -7,3 +9,4 @@ task("blockNumber", "Prints the current block number")
             console.log("Current block number: ".bgBlue, blockNumber);
         }
     );
+

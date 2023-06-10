@@ -1,7 +1,9 @@
 require("@nomicfoundation/hardhat-toolbox");
 require('dotenv').config();
 require("@nomicfoundation/hardhat-verify");
+require("hardhat-gas-reporter");
 
+require("./tasks/blockNumber");
 
 
 task("balance", "Prints an account's balance")
@@ -11,6 +13,7 @@ task("balance", "Prints an account's balance")
     const ethBalance = hre.ethers.formatEther(balance);
     console.log(ethBalance);
   });
+
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
   defaultNetwork: "hardhat",
@@ -20,9 +23,17 @@ module.exports = {
       accounts: [process.env.SEPOLIA_PRIVATE_KEY],
       chainId: 11155111,
     },
+    localhost: {
+      url: "http://127.0.0.1:8545/",
+      // accounts默认使用hardhat列表中的第一个账户
+      chainId: 31337,
+    }
   },
   solidity: "0.8.18",
   etherscan: {
     apiKey: process.env.ETHERSCAN_API_KEY,
-  }
+  },
+  // gasReporter: {
+  //   enabled: true,
+  // }
 };
